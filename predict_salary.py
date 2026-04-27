@@ -6,12 +6,15 @@ import numpy as np
 import os
 import unicodedata
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+from predict_evaluation import evaluate_regression, evaluate_regression_by_group
 
 
 # -----------------------------
@@ -188,6 +191,50 @@ def clean_percent_column(series):
 
 
 # -----------------------------
+# 2b. Position normalization (DEF/MID/FWD)
+# -----------------------------
+def _first_position_token(pos_val: object) -> str:
+    """
+    Extract the first position token from a (possibly comma-separated) position string.
+    Examples:
+      "FW,MF" -> "FW"
+      "MF,FW" -> "MF"
+      " LB"   -> "LB"
+    """
+    if pos_val is None or (isinstance(pos_val, float) and np.isnan(pos_val)):
+        return ""
+    s = str(pos_val).strip()
+    if not s:
+        return ""
+    return s.split(",", 1)[0].strip()
+
+
+def map_position_group(pos_val: object) -> str:
+    """
+    Map a raw position string to one of: DEF / MID / FWD / GK / UNK.
+    Rule for combos: use FIRST token only (e.g., "FW,MF" -> FW -> FWD).
+    """
+    token = _first_position_token(pos_val).upper()
+
+    if token == "GK":
+        return "GK"
+
+    # Common forward labels
+    if token in {"FW", "CF", "ST", "SS", "LW", "RW", "LF", "RF"}:
+        return "FWD"
+
+    # Common midfield labels
+    if token in {"MF", "CM", "DM", "AM", "LM", "RM"}:
+        return "MID"
+
+    # Common defender labels
+    if token in {"DF", "CB", "LB", "RB", "FB", "LWB", "RWB", "WB"}:
+        return "DEF"
+
+    return "UNK"
+
+
+# -----------------------------
 # 3. Choose target column
 # -----------------------------
 
@@ -238,9 +285,24 @@ if "position" not in df.columns and "position_x" in df.columns:
 
 df = df.dropna(subset=[target_col])
 
-# Remove goalkeepers: their stats/role differ heavily and are sparse in our features.
+# Exclude goalkeepers (keep original position labels for the global model).
 if "position" in df.columns:
     df = df[~df["position"].astype(str).str.contains(r"\bGK\b", regex=True, na=False)].copy()
+
+# Reduce outlier influence by clipping the 1st/99th percentile salaries
+lower_q = 0.01
+upper_q = 0.99
+
+# Save raw target for presentation metrics
+df["_salary_raw"] = df[target_col]
+
+y_lo = df[target_col].quantile(lower_q)
+y_hi = df[target_col].quantile(upper_q)
+
+df[target_col] = df[target_col].clip(lower=y_lo, upper=y_hi)
+
+print(f"\nTrimmed target '{target_col}' to [{lower_q:.0%}, {upper_q:.0%}] quantiles:")
+print(f"  lower={y_lo:,.0f}  upper={y_hi:,.0f}")
 
 
 # -----------------------------
@@ -295,6 +357,21 @@ _coalesce_first(df, "progressive_carries", ["player_stats__progressive_carries"]
 _coalesce_first(df, "progressive_passes", ["player_stats__progressive_passes"])
 _coalesce_first(df, "received_progressive_passes", ["player_stats__received_progressive_passes"])
 
+# Add per-90 metrics from the standard stats file (keep totals too).
+_coalesce_first(df, "goals_per90", ["Squad_PlayerStats__stats_standard__Per 90 Minutes_Gls"])
+_coalesce_first(df, "assists_per90", ["Squad_PlayerStats__stats_standard__Per 90 Minutes_Ast"])
+_coalesce_first(df, "g_plus_a_per90", ["Squad_PlayerStats__stats_standard__Per 90 Minutes_G+A"])
+_coalesce_first(df, "g_minus_pk_per90", ["Squad_PlayerStats__stats_standard__Per 90 Minutes_G-PK"])
+_coalesce_first(df, "g_plus_a_minus_pk_per90", ["Squad_PlayerStats__stats_standard__Per 90 Minutes_G+A-PK"])
+
+# Guard against noisy per-90 rates for low-minute players.
+MIN_MINUTES_FOR_PER90 = 450 
+if "minutes" in df.columns:
+    for c in ["goals_per90", "assists_per90", "g_plus_a_per90", "g_minus_pk_per90", "g_plus_a_minus_pk_per90"]:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+            df[c] = df[c].where(df["minutes"] >= MIN_MINUTES_FOR_PER90, np.nan)
+
 # Keep possession metrics (not duplicates of the above in this dataset).
 possession_keep = [
     "player_possession_stats__90s",
@@ -311,7 +388,7 @@ possession_keep = [
 ]
 possession_keep = [c for c in possession_keep if c in df.columns]
 
-# Position is the only categorical feature we want.
+# Position is the only categorical feature we want for the global model.
 if "position" not in df.columns:
     raise ValueError("Expected a 'position' column after merging, but none was found.")
 
@@ -331,6 +408,11 @@ base_numeric = [
     "progressive_carries",
     "progressive_passes",
     "received_progressive_passes",
+    "goals_per90",
+    "assists_per90",
+    "g_plus_a_per90",
+    "g_minus_pk_per90",
+    "g_plus_a_minus_pk_per90",
 ]
 numeric_cols = [c for c in base_numeric if c in df.columns]
 
@@ -417,7 +499,36 @@ X_train, X_test, y_train, y_test = train_test_split(
 # 11. Train model
 # -----------------------------
 
-model.fit(X_train, y_train)
+# Optional: tune RF hyperparameters for lower MAE (small randomized search).
+TUNE_RF = True
+if TUNE_RF:
+    param_distributions = {
+        "regressor__n_estimators": [400, 800, 1200],
+        "regressor__max_features": ["sqrt", "log2", 0.3, 0.5, 0.8],
+        "regressor__min_samples_leaf": [1, 2, 5, 10, 20],
+        "regressor__min_samples_split": [2, 5, 10, 20, 40],
+        "regressor__max_depth": [None, 6, 10, 14, 20],
+        "regressor__bootstrap": [True, False],
+    }
+
+    search = RandomizedSearchCV(
+        estimator=model,
+        param_distributions=param_distributions,
+        n_iter=40,
+        scoring="neg_mean_absolute_error",
+        cv=5,
+        random_state=42,
+        n_jobs=-1,
+        verbose=0,
+    )
+    search.fit(X_train, y_train)
+    model = search.best_estimator_
+    tuned_params = search.best_params_
+    print("\nTuned Random Forest params (best by CV MAE):")
+    for k in sorted(tuned_params):
+        print(f"  {k}: {tuned_params[k]}")
+else:
+    model.fit(X_train, y_train)
 
 
 # -----------------------------
@@ -436,15 +547,28 @@ print(f"MAE:  {mae:,.2f}")
 print(f"RMSE: {rmse:,.2f}")
 print(f"R²:   {r2:.4f}")
 
-# MAE by position (global model)
-if "position" in X_test.columns:
-    print("\nMAE by position (global model):")
-    for pos in sorted(X_test["position"].dropna().unique()):
-        mask = X_test["position"] == pos
-        if mask.sum() < 3:
-            continue
-        pos_mae = mean_absolute_error(y_test[mask], y_pred[mask])
-        print(f"  {pos}: {pos_mae:,.2f} (n={int(mask.sum())})")
+# -----------------------------
+# 12b. Evaluation add-ons (normalized MAE + baseline)
+# -----------------------------
+print("\nEvaluation (global):")
+global_eval = evaluate_regression(y_true=y_test, y_pred=y_pred, y_ref=y_train)
+for line in global_eval.as_print_lines("All players", indent=""):
+    print(line)
+
+# Evaluation by position (global model), using TRAIN position medians/IQR as reference.
+if "position" in X_test.columns and "position" in X_train.columns:
+    print("\nEvaluation by position (global model):")
+    by_pos = evaluate_regression_by_group(
+        y_true=y_test,
+        y_pred=y_pred,
+        groups_true=X_test["position"],
+        y_ref=y_train,
+        groups_ref=X_train["position"],
+        min_n=3,
+    )
+    for pos, ev in by_pos.items():
+        for line in ev.as_print_lines(pos, indent="  "):
+            print(line)
 
 
 # -----------------------------
@@ -460,7 +584,11 @@ results_df = pd.DataFrame({
 })
 
 print("\nSample predictions:")
-print(results_df.head(10).to_string(index=False))
+display_df = results_df.head(10).copy()
+for c in ["Actual Salary", "Predicted Salary", "Error"]:
+    if c in display_df.columns:
+        display_df[c] = display_df[c].map(lambda v: f"{v:,.0f}" if pd.notna(v) else v)
+print(display_df.to_string(index=False))
 
 
 # -----------------------------
@@ -490,20 +618,21 @@ def train_and_report_by_position(
     positions: list[str],
     random_state: int = 42,
     test_size: float = 0.2,
+    min_n: int = 40,
 ) -> None:
     """
     Fit one model per position using only numeric stats (position is constant so it's excluded),
     then print MAE + top importances per position.
     """
-    if "position" not in X_all.columns:
+    if "position_group" not in X_all.columns:
         return
 
-    numeric_cols_local = [c for c in X_all.columns if c != "position"]
+    numeric_cols_local = [c for c in X_all.columns if c != "position_group"]
     for pos in positions:
-        Xp = X_all[X_all["position"] == pos].copy()
+        Xp = X_all[X_all["position_group"] == pos].copy()
         yp = y_all.loc[Xp.index]
 
-        if len(Xp) < 30:
+        if len(Xp) < min_n:
             continue
 
         Xp = Xp[numeric_cols_local]
@@ -527,10 +656,12 @@ def train_and_report_by_position(
         )
 
         rf = RandomForestRegressor(
-            n_estimators=300,
-            max_depth=None,
-            min_samples_split=5,
-            min_samples_leaf=2,
+            n_estimators=model.named_steps["regressor"].n_estimators,
+            max_depth=model.named_steps["regressor"].max_depth,
+            min_samples_split=model.named_steps["regressor"].min_samples_split,
+            min_samples_leaf=model.named_steps["regressor"].min_samples_leaf,
+            max_features=model.named_steps["regressor"].max_features,
+            bootstrap=model.named_steps["regressor"].bootstrap,
             random_state=random_state,
             n_jobs=-1,
         )
@@ -556,10 +687,26 @@ def train_and_report_by_position(
 
         print(f"\nPosition model: {pos}")
         print(f"  MAE: {mae_pos:,.2f} (n={len(Xp):,})")
+
+        # Normalized evaluation and baseline within this position group.
+        ev = evaluate_regression(y_true=yte, y_pred=pred, y_ref=ytr)
+        print("  Normalized evaluation (vs TRAIN distribution):")
+        for line in ev.as_print_lines("This group", indent="    "):
+            print(line)
+
         print("  Top 10 importances:")
         print(imp.to_string(index=False))
 
 
-pos_list = sorted([p for p in X["position"].dropna().unique() if p != "GK"])
-print("\nTraining separate models by position (DF/MF/FW groupings as-is in data):")
-train_and_report_by_position(X, y, pos_list)
+# Build a grouped position view for position-specific models only (DEF/MID/FWD).
+X_grouped = X.copy()
+X_grouped["position_group"] = X_grouped["position"].map(map_position_group)
+X_grouped = X_grouped[X_grouped["position_group"] != "GK"].copy()
+X_grouped = X_grouped[X_grouped["position_group"] != "UNK"].copy()
+X_grouped = X_grouped.drop(columns=["position"])
+
+MIN_N_POSITION_MODEL = 40
+pos_counts = X_grouped["position_group"].value_counts(dropna=True)
+pos_list = sorted([p for p, n in pos_counts.items() if int(n) >= MIN_N_POSITION_MODEL])
+print(f"\nTraining separate models by position (DEF/MID/FWD groupings, min n={MIN_N_POSITION_MODEL}):")
+train_and_report_by_position(X_grouped, y.loc[X_grouped.index], pos_list, min_n=MIN_N_POSITION_MODEL)
