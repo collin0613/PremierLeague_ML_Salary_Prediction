@@ -1,74 +1,74 @@
 player,squad,pos,annual_wage_gbp,salary_tier_actual,salary_tier_predicted,correct,max_prob
-James Justin,Leicester City,DF,1905153.0,Low,High,False,0.42859498313745403
-Toti Gomes,Wolves,DF,1587628.0,Low,Medium,False,0.6642508090163503
-Luke Woolfenden,Ipswich Town,DF,476288.0,Low,Medium,False,0.577917133692774
-Michael Kayode,Brentford,DF,2094226.0,Low,Low,True,0.7654689774012433
-Ashley Young,Everton,DF,2540205.0,Low,High,False,0.4700931150533208
-Jacob Greaves,Ipswich Town,DF,1587628.0,Low,Low,True,0.4877161284576298
-Adam Smith,Bournemouth,DF,2540205.0,Low,Medium,False,0.42889088278037274
-Kevin Danso,Tottenham Hotspur,DF,1745189.0,Low,Medium,False,0.409651914623944
-Axel Tuanzebe,Ipswich Town,DF,2540205.0,Low,Medium,False,0.4738044598399427
-Antonee Robinson,Fulham,DF,3175256.0,Medium,High,False,0.39916161685952567
-Archie Gray,Tottenham Hotspur,DF,4762884.0,Medium,Low,False,0.39928706272129333
-Marc Guéhi,Crystal Palace,DF,3175256.0,Medium,High,False,0.5179293800690906
-Destiny Udogie,Tottenham Hotspur,DF,4762884.0,Medium,Low,False,0.5794764903697448
-Fabian Schär,Newcastle United,DF,2857730.0,Medium,High,False,0.6158454114915586
-Conor Coady,Leicester City,DF,4762884.0,Medium,High,False,0.4584558317070024
-Illia Zabarnyi,Bournemouth,DF,3175256.0,Medium,Low,False,0.4874670664419563
-Timothy Castagne,Fulham,DF,4127832.0,Medium,High,False,0.4203193298894035
-Jan Bednarek,Southampton,DF,4445358.0,Medium,High,False,0.44049734928428874
-William Saliba,Arsenal,DF,12065972.0,High,Low,False,0.39795954530768474
-John Stones,Manchester City,DF,15876279.0,High,High,True,0.857966496188073
-Radu Drăgușin,Tottenham Hotspur,DF,5397935.0,High,Low,False,0.5014024449294199
-Max Kilman,West Ham United,DF,6350511.0,High,High,True,0.4250463048108611
-Matheus Nunes,Manchester City,DF,8255665.0,High,Low,False,0.6938154348213993
-Lisandro Martínez,Manchester Utd,DF,7620614.0,High,Medium,False,0.5473793483437586
-Nathan Aké,Manchester City,DF,10160818.0,High,Medium,False,0.4795486623470835
-James Tarkowski,Everton,DF,6350511.0,High,High,True,0.524321648471769
-Trent Alexander-Arnold,Liverpool,DF,11430921.0,High,Low,False,0.7457983323354096
-Wilson Odobert,Tottenham Hotspur,FW,1587628.0,Low,Low,True,0.5323651408589283
-Liam Delap,Ipswich Town,FW,1270102.0,Low,Medium,False,0.4648871649659872
-Yoane Wissa,Brentford,FW,1587628.0,Low,High,False,0.4766260431050825
-Brennan Johnson,Tottenham Hotspur,FW,4445358.0,Medium,Low,False,0.5268427606540954
-Eddie Nketiah,Crystal Palace,FW,5715460.0,Medium,Low,False,0.48226430348982124
-Evanilson,Bournemouth,FW,5397935.0,Medium,High,False,0.6466785122746789
-Jáder Durán,Aston Villa,FW,4762884.0,Medium,Low,False,0.37862202170838816
-Anthony Gordon,Newcastle United,FW,9525767.0,High,Low,False,0.4902086108864081
-Bukayo Saka,Arsenal,FW,12383497.0,High,Low,False,0.36704260182202186
-Timo Werner,Tottenham Hotspur,FW,10478344.0,High,Medium,False,0.40213262882189726
-Omari Hutchinson,Ipswich Town,MF,381031.0,Low,Low,True,0.6204980126238627
-Jordan Ayew,Leicester City,MF,1905153.0,Low,Medium,False,0.45130780427489364
-Vitaly Janelt,Brentford,MF,1905153.0,Low,Medium,False,0.393714560879316
-Christian Nørgaard,Brentford,MF,2222679.0,Low,High,False,0.3918396863636511
-Sammie Szmodics,Ipswich Town,MF,1587628.0,Low,Medium,False,0.49349108193450547
-Welington,Southampton,MF,1047113.0,Low,Medium,False,0.4381407706423043
-Carlos Baleba,Brighton,MF,793814.0,Low,Low,True,0.5552611445313618
-Tom Cairney,Fulham,MF,1905153.0,Low,High,False,0.6432745484283815
-Julio Enciso,Ipswich Town,MF,1047113.0,Low,Low,True,0.4945061269498994
-Kyle Walker-Peters,Southampton,MF,1270102.0,Low,Medium,False,0.48201365804756197
-Harry Wilson,Fulham,MF,2222679.0,Low,High,False,0.45090023166838267
-Alejandro Garnacho,Manchester Utd,MF,3175256.0,Medium,Low,False,0.5624620724627554
-Jeremy Doku,Manchester City,MF,3175256.0,Medium,Low,False,0.4669818448413197
-Adama Traoré,Fulham,MF,4127832.0,Medium,High,False,0.5010923037064918
-Carlos Soler,West Ham United,MF,5080409.0,Medium,Medium,True,0.41931213121647176
-Yukinari Sugawara,Southampton,MF,2540205.0,Medium,Low,False,0.5232259984773547
-Jefferson Lerma,Crystal Palace,MF,4445358.0,Medium,Medium,True,0.365622130862543
-Lewis Cook,Bournemouth,MF,3810307.0,Medium,High,False,0.40077960443932753
-Noni Madueke,Chelsea,MF,3175256.0,Medium,Low,False,0.46855555909347896
-Antoine Semenyo,Bournemouth,MF,3175256.0,Medium,High,False,0.3974097881816224
-Mathias Jensen,Brentford,MF,3175256.0,Medium,Medium,True,0.439494681765942
-Sander Berge,Fulham,MF,3492781.0,Medium,Medium,True,0.5756521753911006
-Cheick Doucouré,Crystal Palace,MF,4445358.0,Medium,Medium,True,0.5488865565070444
-Yankuba Minteh,Brighton,MF,2540205.0,Medium,Low,False,0.5099072641523293
-Jadon Sancho,Chelsea,MF,9525767.0,High,Low,False,0.5797828221489135
-Bernardo Silva,Manchester City,MF,19051534.0,High,High,True,0.4185716437253922
-Youri Tielemans,Aston Villa,MF,9525767.0,High,High,True,0.45481232842316954
-Cole Palmer,Chelsea,MF,8255665.0,High,High,True,0.46294783457878574
-James Ward-Prowse,West Ham United,MF,8027867.0,High,Medium,False,0.46332853472873675
-Manuel Ugarte,Manchester Utd,MF,7620614.0,High,Medium,False,0.40464718984753634
-Jorginho,Arsenal,MF,6985563.0,High,Medium,False,0.49371945262159744
-Daichi Kamada,Crystal Palace,MF,6668037.0,High,Medium,False,0.6918432101303277
-Dominik Szoboszlai,Liverpool,MF,7620614.0,High,Low,False,0.6223074407557133
-Abdoulaye Doucouré,Everton,MF,8255665.0,High,High,True,0.37539333744628994
-Bruno Fernandes,Manchester Utd,MF,19051534.0,High,High,True,0.6288201310033407
-MODEL_ACCURACY,,,,0.264,,,
+James Justin,Leicester City,DF,1905153.0,Low,Medium,False,0.4159397845950947
+Toti Gomes,Wolves,DF,1587628.0,Low,Medium,False,0.4372417812963995
+Luke Woolfenden,Ipswich Town,DF,476288.0,Low,Medium,False,0.4989719368044767
+Michael Kayode,Brentford,DF,2094226.0,Low,Low,True,0.47052769908010444
+Ashley Young,Everton,DF,2540205.0,Low,Medium,False,0.39237796972757133
+Jacob Greaves,Ipswich Town,DF,1587628.0,Low,Low,True,0.5506874762799445
+Adam Smith,Bournemouth,DF,2540205.0,Low,Medium,False,0.41280383648654057
+Kevin Danso,Tottenham Hotspur,DF,1745189.0,Low,Medium,False,0.4165597868619521
+Axel Tuanzebe,Ipswich Town,DF,2540205.0,Low,Medium,False,0.4152699607694219
+Antonee Robinson,Fulham,DF,3175256.0,Medium,High,False,0.41754924696658485
+Archie Gray,Tottenham Hotspur,DF,4762884.0,Medium,Low,False,0.3954607705735777
+Marc Guéhi,Crystal Palace,DF,3175256.0,Medium,High,False,0.5998361301547813
+Destiny Udogie,Tottenham Hotspur,DF,4762884.0,Medium,Low,False,0.6446030711061985
+Fabian Schär,Newcastle United,DF,2857730.0,Medium,High,False,0.5242594416437244
+Conor Coady,Leicester City,DF,4762884.0,Medium,Medium,True,0.40239606874499023
+Illia Zabarnyi,Bournemouth,DF,3175256.0,Medium,Low,False,0.39832023871351846
+Timothy Castagne,Fulham,DF,4127832.0,Medium,Medium,True,0.45879591000426045
+Jan Bednarek,Southampton,DF,4445358.0,Medium,Medium,True,0.44244794263069914
+William Saliba,Arsenal,DF,12065972.0,High,Low,False,0.5039228553918906
+John Stones,Manchester City,DF,15876279.0,High,Medium,False,0.5622899246522816
+Radu Drăgușin,Tottenham Hotspur,DF,5397935.0,High,Low,False,0.3947536624783858
+Max Kilman,West Ham United,DF,6350511.0,High,Medium,False,0.43325374515807036
+Matheus Nunes,Manchester City,DF,8255665.0,High,High,True,0.5510503109848757
+Lisandro Martínez,Manchester Utd,DF,7620614.0,High,Medium,False,0.4489783351250736
+Nathan Aké,Manchester City,DF,10160818.0,High,High,True,0.4397944193774069
+James Tarkowski,Everton,DF,6350511.0,High,Medium,False,0.4349475859705838
+Trent Alexander-Arnold,Liverpool,DF,11430921.0,High,High,True,0.39345965571655794
+Wilson Odobert,Tottenham Hotspur,FW,1587628.0,Low,Low,True,0.490231931937635
+Liam Delap,Ipswich Town,FW,1270102.0,Low,Medium,False,0.3725806643507578
+Yoane Wissa,Brentford,FW,1587628.0,Low,High,False,0.4018817190675162
+Brennan Johnson,Tottenham Hotspur,FW,4445358.0,Medium,Low,False,0.45217506493209014
+Eddie Nketiah,Crystal Palace,FW,5715460.0,Medium,High,False,0.41378876133518055
+Evanilson,Bournemouth,FW,5397935.0,Medium,Medium,True,0.4710126545398352
+Jáder Durán,Aston Villa,FW,4762884.0,Medium,Low,False,0.4748324175198831
+Anthony Gordon,Newcastle United,FW,9525767.0,High,High,True,0.6179281933223857
+Bukayo Saka,Arsenal,FW,12383497.0,High,Low,False,0.4143786131579224
+Timo Werner,Tottenham Hotspur,FW,10478344.0,High,High,True,0.4413027304161502
+Omari Hutchinson,Ipswich Town,MF,381031.0,Low,Low,True,0.5313148639709016
+Jordan Ayew,Leicester City,MF,1905153.0,Low,Medium,False,0.45630673458919313
+Vitaly Janelt,Brentford,MF,1905153.0,Low,High,False,0.38532751225039713
+Christian Nørgaard,Brentford,MF,2222679.0,Low,High,False,0.4271812023053689
+Sammie Szmodics,Ipswich Town,MF,1587628.0,Low,High,False,0.4678013117233911
+Welington,Southampton,MF,1047113.0,Low,Low,True,0.44752458857714594
+Carlos Baleba,Brighton,MF,793814.0,Low,Low,True,0.36385366847812156
+Tom Cairney,Fulham,MF,1905153.0,Low,Medium,False,0.5067447615139647
+Julio Enciso,Ipswich Town,MF,1047113.0,Low,Low,True,0.4261099259814508
+Kyle Walker-Peters,Southampton,MF,1270102.0,Low,Medium,False,0.49876058537737644
+Harry Wilson,Fulham,MF,2222679.0,Low,High,False,0.37245292098727595
+Alejandro Garnacho,Manchester Utd,MF,3175256.0,Medium,Low,False,0.4518796679170074
+Jeremy Doku,Manchester City,MF,3175256.0,Medium,Low,False,0.4338002009992527
+Adama Traoré,Fulham,MF,4127832.0,Medium,Low,False,0.4414831711332933
+Carlos Soler,West Ham United,MF,5080409.0,Medium,Medium,True,0.46971529218013974
+Yukinari Sugawara,Southampton,MF,2540205.0,Medium,Low,False,0.4794114105828568
+Jefferson Lerma,Crystal Palace,MF,4445358.0,Medium,Medium,True,0.412908277602275
+Lewis Cook,Bournemouth,MF,3810307.0,Medium,Medium,True,0.3823397648873214
+Noni Madueke,Chelsea,MF,3175256.0,Medium,Low,False,0.46514567485117264
+Antoine Semenyo,Bournemouth,MF,3175256.0,Medium,Medium,True,0.3555758291461382
+Mathias Jensen,Brentford,MF,3175256.0,Medium,High,False,0.4697407384804015
+Sander Berge,Fulham,MF,3492781.0,Medium,Medium,True,0.4487628593816255
+Cheick Doucouré,Crystal Palace,MF,4445358.0,Medium,Low,False,0.3833355721088825
+Yankuba Minteh,Brighton,MF,2540205.0,Medium,Low,False,0.44642373082402087
+Jadon Sancho,Chelsea,MF,9525767.0,High,High,True,0.5263390445095076
+Bernardo Silva,Manchester City,MF,19051534.0,High,High,True,0.4323987038298185
+Youri Tielemans,Aston Villa,MF,9525767.0,High,High,True,0.5539921738983478
+Cole Palmer,Chelsea,MF,8255665.0,High,Medium,False,0.41970221422965226
+James Ward-Prowse,West Ham United,MF,8027867.0,High,Medium,False,0.520452790617416
+Manuel Ugarte,Manchester Utd,MF,7620614.0,High,Low,False,0.42610077763734017
+Jorginho,Arsenal,MF,6985563.0,High,Medium,False,0.5579302454564128
+Daichi Kamada,Crystal Palace,MF,6668037.0,High,Medium,False,0.5241886373182846
+Dominik Szoboszlai,Liverpool,MF,7620614.0,High,High,True,0.5525122743850612
+Abdoulaye Doucouré,Everton,MF,8255665.0,High,High,True,0.51229090907681
+Bruno Fernandes,Manchester Utd,MF,19051534.0,High,High,True,0.5240691141520799
+MODEL_ACCURACY,,,,0.375,,,
