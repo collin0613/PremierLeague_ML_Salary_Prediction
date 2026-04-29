@@ -1,20 +1,34 @@
 # Course: CS 513 - Data Analytics & Machine Learning
-# Purpose: Predict Premier League player salary using Random Forest Regression
+# Purpose: Predict Premier League player salary using regression models
 
 import pandas as pd
 import numpy as np
 import os
 import unicodedata
+from sklearn.base import clone
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from predict_evaluation import evaluate_regression, evaluate_regression_by_group
+
+
+def _make_onehot():
+    """
+    Create a dense OneHotEncoder output.
+    HistGradientBoostingRegressor expects dense arrays (not sparse matrices).
+    """
+    try:
+        return OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+    except TypeError:
+        # scikit-learn < 1.2 uses `sparse`
+        return OneHotEncoder(handle_unknown="ignore", sparse=False)
 
 
 # -----------------------------
@@ -365,7 +379,7 @@ _coalesce_first(df, "g_minus_pk_per90", ["Squad_PlayerStats__stats_standard__Per
 _coalesce_first(df, "g_plus_a_minus_pk_per90", ["Squad_PlayerStats__stats_standard__Per 90 Minutes_G+A-PK"])
 
 # Guard against noisy per-90 rates for low-minute players.
-MIN_MINUTES_FOR_PER90 = 450 
+MIN_MINUTES_FOR_PER90 = 450
 if "minutes" in df.columns:
     for c in ["goals_per90", "assists_per90", "g_plus_a_per90", "g_minus_pk_per90", "g_plus_a_minus_pk_per90"]:
         if c in df.columns:
@@ -454,7 +468,7 @@ preprocessor = ColumnTransformer(
             "cat",
             Pipeline(steps=[
                 ("imputer", SimpleImputer(strategy="most_frequent")),
-                ("onehot", OneHotEncoder(handle_unknown="ignore")),
+                ("onehot", _make_onehot()),
             ]),
             categorical_features,
         ),
@@ -463,22 +477,19 @@ preprocessor = ColumnTransformer(
 
 
 # -----------------------------
-# 9. Build Random Forest pipeline
+# 9. Build model pipeline
 # -----------------------------
 
-rf_regressor = RandomForestRegressor(
-    n_estimators=300,
-    max_depth=None,
-    min_samples_split=5,
-    min_samples_leaf=2,
+# Experiment B: ExtraTreesRegressor (tune for R²)
+regressor = ExtraTreesRegressor(
     random_state=42,
-    n_jobs=-1
+    n_jobs=-1,
 )
 
 model = Pipeline(
     steps=[
         ("preprocessor", preprocessor),
-        ("regressor", rf_regressor)
+        ("regressor", regressor)
     ]
 )
 
@@ -499,23 +510,23 @@ X_train, X_test, y_train, y_test = train_test_split(
 # 11. Train model
 # -----------------------------
 
-# Optional: tune RF hyperparameters for lower MAE (small randomized search).
+# Optional: tune hyperparameters (optimize CV R²).
 TUNE_RF = True
 if TUNE_RF:
     param_distributions = {
-        "regressor__n_estimators": [400, 800, 1200],
-        "regressor__max_features": ["sqrt", "log2", 0.3, 0.5, 0.8],
-        "regressor__min_samples_leaf": [1, 2, 5, 10, 20],
-        "regressor__min_samples_split": [2, 5, 10, 20, 40],
-        "regressor__max_depth": [None, 6, 10, 14, 20],
-        "regressor__bootstrap": [True, False],
+        "regressor__n_estimators": [300, 600, 1000, 1500],
+        "regressor__max_depth": [None, 8, 12, 16, 24],
+        "regressor__min_samples_split": [2, 5, 10, 20],
+        "regressor__min_samples_leaf": [1, 2, 5, 10],
+        "regressor__max_features": ["sqrt", "log2", 0.3, 0.5, 0.8, 1.0],
+        "regressor__bootstrap": [False, True],
     }
 
     search = RandomizedSearchCV(
         estimator=model,
         param_distributions=param_distributions,
         n_iter=40,
-        scoring="neg_mean_absolute_error",
+        scoring="r2",
         cv=5,
         random_state=42,
         n_jobs=-1,
@@ -524,7 +535,7 @@ if TUNE_RF:
     search.fit(X_train, y_train)
     model = search.best_estimator_
     tuned_params = search.best_params_
-    print("\nTuned Random Forest params (best by CV MAE):")
+    print("\nTuned model params (best by CV R²):")
     for k in sorted(tuned_params):
         print(f"  {k}: {tuned_params[k]}")
 else:
@@ -541,7 +552,7 @@ mae = mean_absolute_error(y_test, y_pred)
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 r2 = r2_score(y_test, y_pred)
 
-print("\nRandom Forest Regressor Results")
+print("\nExtraTreesRegressor Results")
 print("--------------------------------")
 print(f"MAE:  {mae:,.2f}")
 print(f"RMSE: {rmse:,.2f}")
@@ -596,17 +607,19 @@ print(display_df.to_string(index=False))
 # -----------------------------
 
 trained_preprocessor = model.named_steps["preprocessor"]
-trained_rf = model.named_steps["regressor"]
+trained_regressor = model.named_steps["regressor"]
 
-feature_names = trained_preprocessor.get_feature_names_out()
+if hasattr(trained_regressor, "feature_importances_"):
+    feature_names = trained_preprocessor.get_feature_names_out()
+    importance_df = pd.DataFrame({
+        "Feature": feature_names,
+        "Importance": trained_regressor.feature_importances_
+    }).sort_values(by="Importance", ascending=False)
 
-importance_df = pd.DataFrame({
-    "Feature": feature_names,
-    "Importance": trained_rf.feature_importances_
-}).sort_values(by="Importance", ascending=False)
-
-print("\nTop 20 Feature Importances:")
-print(importance_df.head(20))
+    print("\nTop 20 Feature Importances:")
+    print(importance_df.head(20))
+else:
+    print("\nFeature importances: not available for this regressor.")
 
 
 # -----------------------------
@@ -626,6 +639,9 @@ def train_and_report_by_position(
     """
     if "position_group" not in X_all.columns:
         return
+
+    # Use the same regressor family/params as the global model.
+    global_regressor = clone(model.named_steps["regressor"])
 
     numeric_cols_local = [c for c in X_all.columns if c != "position_group"]
     for pos in positions:
@@ -655,18 +671,15 @@ def train_and_report_by_position(
             ]
         )
 
-        rf = RandomForestRegressor(
-            n_estimators=model.named_steps["regressor"].n_estimators,
-            max_depth=model.named_steps["regressor"].max_depth,
-            min_samples_split=model.named_steps["regressor"].min_samples_split,
-            min_samples_leaf=model.named_steps["regressor"].min_samples_leaf,
-            max_features=model.named_steps["regressor"].max_features,
-            bootstrap=model.named_steps["regressor"].bootstrap,
-            random_state=random_state,
-            n_jobs=-1,
-        )
+        # Clone again per-position to avoid cross-fit contamination.
+        reg = clone(global_regressor)
+        params = reg.get_params()
+        if "random_state" in params:
+            reg.set_params(random_state=random_state)
+        if "random_seed" in params:
+            reg.set_params(random_seed=random_state)
 
-        m = Pipeline(steps=[("preprocessor", pre), ("regressor", rf)])
+        m = Pipeline(steps=[("preprocessor", pre), ("regressor", reg)])
 
         Xtr, Xte, ytr, yte = train_test_split(
             Xp, yp, test_size=test_size, random_state=random_state
@@ -674,16 +687,6 @@ def train_and_report_by_position(
         m.fit(Xtr, ytr)
         pred = m.predict(Xte)
         mae_pos = mean_absolute_error(yte, pred)
-
-        # Feature importances for this position-specific model (numeric only).
-        pre_trained = m.named_steps["preprocessor"]
-        rf_trained = m.named_steps["regressor"]
-        feat_names = pre_trained.get_feature_names_out()
-        imp = (
-            pd.DataFrame({"Feature": feat_names, "Importance": rf_trained.feature_importances_})
-            .sort_values("Importance", ascending=False)
-            .head(10)
-        )
 
         print(f"\nPosition model: {pos}")
         print(f"  MAE: {mae_pos:,.2f} (n={len(Xp):,})")
@@ -694,8 +697,18 @@ def train_and_report_by_position(
         for line in ev.as_print_lines("This group", indent="    "):
             print(line)
 
-        print("  Top 10 importances:")
-        print(imp.to_string(index=False))
+        # Feature importances if supported.
+        reg_trained = m.named_steps["regressor"]
+        if hasattr(reg_trained, "feature_importances_"):
+            pre_trained = m.named_steps["preprocessor"]
+            feat_names = pre_trained.get_feature_names_out()
+            imp = (
+                pd.DataFrame({"Feature": feat_names, "Importance": reg_trained.feature_importances_})
+                .sort_values("Importance", ascending=False)
+                .head(10)
+            )
+            print("  Top 10 importances:")
+            print(imp.to_string(index=False))
 
 
 # Build a grouped position view for position-specific models only (DEF/MID/FWD).
